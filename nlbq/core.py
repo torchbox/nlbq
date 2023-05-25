@@ -4,6 +4,7 @@ from google.cloud import bigquery
 from tabulate import tabulate
 from typing import Tuple
 
+DEFAULT_MODEL = "gpt-3.5-turbo"
 
 def bytes_info(bytes_used: int) -> Tuple:
     """Convert bytes into human readable figure, calculate queries per month"""
@@ -19,8 +20,8 @@ def bytes_info(bytes_used: int) -> Tuple:
 class NLBQ:
     """Natural language to BigQuery methods"""
 
-    def __init__(self) -> None:
-        self.model = "gpt-3.5-turbo"
+    def __init__(self, model=DEFAULT_MODEL) -> None:
+        self.model = model
         self.prompt_template = self.get_prompt_template()
         self.client = bigquery.Client()
 
@@ -47,7 +48,7 @@ class NLBQ:
     def dry_run(self, query: str):
         """Report on the data this query would use"""
         job_config = bigquery.QueryJobConfig(dry_run=True, use_query_cache=False)
-        query_job = client.query(query, job_config=job_config)
+        query_job = self.client.query(query, job_config=job_config)
         bytes_used = query_job.total_bytes_processed
         human_bytes, queries_per_month = bytes_info(bytes_used)
         return (human_bytes, queries_per_month)

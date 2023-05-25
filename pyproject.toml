@@ -18,10 +18,11 @@ dependencies = [
     "typer",
     "python-dotenv",
     "nldb",
+    "google-cloud-bigquery",
 ]
 
 [project.urls]
 Home = "https://github.com/torchbox/nlbq"
 
 [project.scripts]
-nldb = "nlbq.cli:cli_wrapper"
+nlbq = "nlbq.cli:cli_wrapper"
