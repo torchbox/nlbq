@@ -32,13 +32,13 @@ class NLBQ:
             line for line in lines if not line.strip().startswith("#")]
         return "\n".join(uncommented_lines).strip()
 
-    def text_to_bq(self, question: str) -> str:
+    async def text_to_bq(self, question: str) -> str:
         """Use an LLM to convert a question into a BigQuery SQL query"""
         prompt_messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": self.prompt_template % question},
         ]
-        resp = openai.ChatCompletion.create(
+        resp = await openai.ChatCompletion.acreate(
             model=self.model,
             messages=prompt_messages,
             temperature=0,
