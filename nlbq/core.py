@@ -1,10 +1,13 @@
-import sys
 import openai
 from google.cloud import bigquery
-from tabulate import tabulate
 from typing import Tuple
 
+from nlbq.config import get_settings
+
 DEFAULT_MODEL = "gpt-3.5-turbo"
+
+settings = get_settings()
+
 
 def bytes_info(bytes_used: int) -> Tuple:
     """Convert bytes into human readable figure, calculate queries per month"""
@@ -20,14 +23,14 @@ def bytes_info(bytes_used: int) -> Tuple:
 class NLBQ:
     """Natural language to BigQuery methods"""
 
-    def __init__(self, model=DEFAULT_MODEL) -> None:
+    def __init__(self, model: str = DEFAULT_MODEL) -> None:
         self.model = model
         self.prompt_template = self.get_prompt_template()
         self.client = bigquery.Client()
 
     def get_prompt_template(self) -> str:
         """returns the prompt template as a string, with comments removed"""
-        lines = open("prompt.txt").read().split("\n")
+        lines = open(settings.prompt_template_file).read().split("\n")
         uncommented_lines = [
             line for line in lines if not line.strip().startswith("#")]
         return "\n".join(uncommented_lines).strip()
@@ -42,6 +45,7 @@ class NLBQ:
             model=self.model,
             messages=prompt_messages,
             temperature=0,
+            api_key=settings.openai_api_key,
         )
         return resp["choices"][0]["message"]["content"].strip()
 
@@ -60,12 +64,3 @@ class NLBQ:
         field_names = [field.name for field in results.schema]
         rows = [row.values() for row in results]
         return field_names, rows
-
-
-
-
-
-
-
-
-

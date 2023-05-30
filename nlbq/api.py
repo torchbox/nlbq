@@ -2,13 +2,13 @@ from typing import Union
 from fastapi import FastAPI
 import uvicorn
 
+from nlbq.config import get_settings
 from nlbq.core import NLBQ
 
-# Todo: move to config file
-UVICORN_HOST = "127.0.0.1"
-UVICORN_PORT = 8000
+settings = get_settings()
 
 app = FastAPI()
+
 
 @app.get("/api/dry_run")
 async def dry_run(q: Union[str, None] = None):
@@ -24,5 +24,6 @@ async def dry_run(q: Union[str, None] = None):
         }
     }
 
+
 def serve():
-    uvicorn.run("nlbq.api:app", host=UVICORN_HOST, port=UVICORN_PORT, workers=1)
+    uvicorn.run("nlbq.api:app", host=settings.uvicorn_host, port=settings.uvicorn_port, workers=1)
