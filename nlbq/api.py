@@ -5,11 +5,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from tabulate import tabulate
 
+from nlbq.config import get_settings
 from nlbq.core import NLBQ
 
-# Todo: move to config file
-UVICORN_HOST = "127.0.0.1"
-UVICORN_PORT = 8000
+settings = get_settings()
 
 app = FastAPI()
 
@@ -78,5 +77,6 @@ async def serve_index():
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+
 def serve():
-    uvicorn.run("nlbq.api:app", host=UVICORN_HOST, port=UVICORN_PORT, workers=1)
+    uvicorn.run("nlbq.api:app", host=settings.uvicorn_host, port=settings.uvicorn_port, workers=1)
