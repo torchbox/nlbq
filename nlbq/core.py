@@ -1,6 +1,5 @@
 import openai
 from google.cloud import bigquery
-from typing import Tuple
 
 from nlbq.config import get_settings
 
@@ -9,7 +8,7 @@ DEFAULT_MODEL = "gpt-3.5-turbo"
 settings = get_settings()
 
 
-def bytes_info(bytes_used: int) -> Tuple:
+def bytes_info(bytes_used: int) -> tuple:
     """Convert bytes into human readable figure, calculate queries per month"""
     if bytes_used < 1000000:
         human_bytes = f"{bytes_used/1000:.2f}KB"
@@ -26,13 +25,14 @@ class NLBQ:
     def __init__(self, model: str = DEFAULT_MODEL) -> None:
         self.model = model
         self.prompt_template = self.get_prompt_template()
-        self.client = bigquery.Client.from_service_account_json(settings.google_application_credentials)
+        self.client = bigquery.Client.from_service_account_json(
+            settings.google_application_credentials
+        )
 
     def get_prompt_template(self) -> str:
         """returns the prompt template as a string, with comments removed"""
         lines = open(settings.prompt_template_file).read().split("\n")
-        uncommented_lines = [
-            line for line in lines if not line.strip().startswith("#")]
+        uncommented_lines = [line for line in lines if not line.strip().startswith("#")]
         return "\n".join(uncommented_lines).strip()
 
     async def text_to_bq(self, question: str) -> str:
@@ -56,8 +56,8 @@ class NLBQ:
         bytes_used = query_job.total_bytes_processed
         human_bytes, queries_per_month = bytes_info(bytes_used)
         return (human_bytes, queries_per_month)
-    
-    def execute(self, query: str) -> Tuple:
+
+    def execute(self, query: str) -> tuple:
         """Execute the query, return the results"""
         bq_query = self.client.query(query)
         results = bq_query.result()

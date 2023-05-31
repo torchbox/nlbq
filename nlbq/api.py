@@ -1,6 +1,5 @@
-from typing import Union
-from fastapi import FastAPI
 import uvicorn
+from fastapi import FastAPI
 
 from nlbq.config import get_settings
 from nlbq.core import NLBQ
@@ -11,7 +10,7 @@ app = FastAPI()
 
 
 @app.get("/api/dry_run")
-async def dry_run(q: Union[str, None] = None):
+async def dry_run(q: str | None = None):
     """Process a text query and return the SQL statement, results, and explanation."""
     nlbq = NLBQ()
     statement = await nlbq.text_to_bq(q)
@@ -26,4 +25,9 @@ async def dry_run(q: Union[str, None] = None):
 
 
 def serve():
-    uvicorn.run("nlbq.api:app", host=settings.uvicorn_host, port=settings.uvicorn_port, workers=1)
+    uvicorn.run(
+        "nlbq.api:app",
+        host=settings.uvicorn_host,
+        port=settings.uvicorn_port,
+        workers=1,
+    )

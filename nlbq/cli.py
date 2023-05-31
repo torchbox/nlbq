@@ -5,8 +5,8 @@ from functools import wraps
 import typer
 from tabulate import tabulate
 
-from nlbq.core import NLBQ, DEFAULT_MODEL
 from nlbq.api import serve as api_serve
+from nlbq.core import DEFAULT_MODEL, NLBQ
 
 
 class AsyncTyper(typer.Typer):
