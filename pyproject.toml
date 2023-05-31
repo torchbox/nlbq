@@ -1,10 +1,13 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
+requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
 name = "nlbq"
-authors = [{name = "Tom Dyson and Dan Braghis"}]
+authors = [
+    {name = "Tom Dyson"},
+    {name = "Dan Braghis"}
+]
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
