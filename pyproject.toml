@@ -10,6 +10,8 @@ license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
 
+requires-python = ">=3.11"
+
 dependencies = [
     "openai",
     "fastapi",
@@ -26,3 +28,30 @@ Home = "https://github.com/torchbox/nlbq"
 
 [project.scripts]
 nlbq = "nlbq.cli:cli_wrapper"
+
+
+[project.optional-dependencies]
+lint = [
+    "pre-commit >=3.3.2",
+]
+
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.ruff]
+target-version = "py311"
+select = [
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort
+    "S",  # flake8-bandit
+    "W",  # pycodestyle warnings
+    "UP", # pyupgrade
+]
+
+[tool.ruff.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Query", "fastapi.params.Query", "typer.Argument", "typer.Optional"]
