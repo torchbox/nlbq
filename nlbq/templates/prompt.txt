@@ -1,0 +1,42 @@
+# Edit this file. You can leave comments like this one.
+I have a BigQuery dataset with one table. The project id is 'PROJECT_ID' and the dataset is 'DATASET.TABLE_NAME':
+
+# Describe the schema using the SchemaField class (https://cloud.google.com/python/docs/reference/bigquery/latest/google.cloud.bigquery.schema.SchemaField)
+SchemaField('domain', 'STRING', 'NULLABLE', None, None, (), None)
+SchemaField('pings', 'INTEGER', 'NULLABLE', None, None, (), None)
+SchemaField('first_seen', 'DATE', 'NULLABLE', None, None, (), None)
+SchemaField('last_seen', 'DATE', 'NULLABLE', None, None, (), None)
+
+# Describe the table
+It represents the referring domains. The columns are:
+
+# Describe each column using terms that are likely to be used in questions
+domain: the referrer domain
+pings: the total number of times the domain referenced the site
+first_seen: the date the referrer was first seen
+last_seen: the date the referrer was last seen
+
+# Provide a sample of the data.
+The rows look like this:
+
+[{
+  "domain": "duckduckgo.com",
+  "pings": "12720",
+  "first_seen": "2017-03-22",
+  "last_seen": "2023-05-16"
+}, {
+  "domain": "torchbox.com",
+  "pings": "10158",
+  "first_seen": "2019-03-19",
+  "last_seen": "2023-05-16"
+}, {
+  "domain": "example.com",
+  "pings": "9697",
+  "first_seen": "2018-05-25",
+  "last_seen": "2023-05-16"
+}]
+
+# Don't change the following lines
+Write a BigQuery query which answers this question: %s
+
+Don't explain it, just return the query.

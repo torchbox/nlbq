@@ -1,6 +1,8 @@
+import shutil
 import sys
 from asyncio import run
 from functools import wraps
+from pathlib import Path
 
 import typer
 from tabulate import tabulate
@@ -51,7 +53,17 @@ async def ask(query: str, model: str = DEFAULT_MODEL) -> str:
 @app.command()
 def init():
     """Create stub files: prompt.txt, index.html, Dockerfile"""
-    print("Todo")
+    package_dir = Path(__file__).parent
+    for file in ["Dockerfile", "index.html", "prompt.txt"]:
+        dest = Path.cwd() / file
+        if dest.exists():
+            prefix = typer.style("✘", fg=typer.colors.RED, bold=True)
+            typer.echo(f"{prefix} {file} already exists here")
+            raise typer.Abort()
+        else:
+            shutil.copyfile(package_dir / "templates" / file, dest)
+            prefix = typer.style("✔", fg=typer.colors.GREEN, bold=True)
+            typer.echo(f"{prefix} Created {file} at {dest}")
 
 
 @app.command()
