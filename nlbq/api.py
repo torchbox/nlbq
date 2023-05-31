@@ -45,8 +45,12 @@ async def dry_run(request_data: DryRunRequest) -> DryRunResponse:
     """Process a text query and return the SQL statement, results, and explanation."""
     nlbq = NLBQ(model=request_data.model)
     statement = await nlbq.text_to_bq(request_data.question)
-    data, qpm = nlbq.dry_run(statement)
-    return DryRunResponse(statement=statement, data=data, qpm=qpm)
+    bytes_info = nlbq.dry_run(statement)
+    return DryRunResponse(
+        statement=statement,
+        data=bytes_info.human_bytes,
+        qpm=bytes_info.queries_per_month,
+    )
 
 
 @app.post("/api/run_statement")
@@ -77,6 +81,10 @@ async def serve_index():
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-
 def serve():
-    uvicorn.run("nlbq.api:app", host=settings.uvicorn_host, port=settings.uvicorn_port, workers=1)
+    uvicorn.run(
+        "nlbq.api:app",
+        host=settings.uvicorn_host,
+        port=settings.uvicorn_port,
+        workers=1,
+    )

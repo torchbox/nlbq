@@ -1,6 +1,6 @@
 import openai
 from google.cloud import bigquery
-from typing import Tuple
+from pydantic import BaseModel
 
 from nlbq.config import get_settings
 
@@ -9,7 +9,13 @@ DEFAULT_MODEL = "gpt-3.5-turbo"
 settings = get_settings()
 
 
-def bytes_info(bytes_used: int) -> Tuple:
+class BytesInfo(BaseModel):
+    bytes_used: int
+    human_bytes: str
+    queries_per_month: int
+
+
+def get_bytes_info(bytes_used: int) -> BytesInfo:
     """Convert bytes into human readable figure, calculate queries per month"""
     if bytes_used < 1000000:
         human_bytes = f"{bytes_used/1000:.2f}KB"
@@ -17,7 +23,11 @@ def bytes_info(bytes_used: int) -> Tuple:
         human_bytes = f"{bytes_used/1000000:.2f}MB"
     free_tier_bytes_per_month = 1024**4  # 1TB
     queries_per_month = free_tier_bytes_per_month // bytes_used
-    return (human_bytes, queries_per_month)
+    return BytesInfo(
+        bytes_used=bytes_used,
+        human_bytes=human_bytes,
+        queries_per_month=queries_per_month,
+    )
 
 
 class NLBQ:
@@ -26,13 +36,14 @@ class NLBQ:
     def __init__(self, model: str = DEFAULT_MODEL) -> None:
         self.model = model
         self.prompt_template = self.get_prompt_template()
-        self.client = bigquery.Client.from_service_account_json(settings.google_application_credentials)
+        self.client = bigquery.Client.from_service_account_json(
+            settings.google_application_credentials
+        )
 
     def get_prompt_template(self) -> str:
         """returns the prompt template as a string, with comments removed"""
         lines = open(settings.prompt_template_file).read().split("\n")
-        uncommented_lines = [
-            line for line in lines if not line.strip().startswith("#")]
+        uncommented_lines = [line for line in lines if not line.strip().startswith("#")]
         return "\n".join(uncommented_lines).strip()
 
     async def text_to_bq(self, question: str) -> str:
@@ -49,22 +60,20 @@ class NLBQ:
         )
         return resp["choices"][0]["message"]["content"].strip()
 
-    def dry_run(self, query: str):
+    def dry_run(self, query: str) -> BytesInfo:
         """Report on the data this query would use"""
         job_config = bigquery.QueryJobConfig(dry_run=True, use_query_cache=False)
         query_job = self.client.query(query, job_config=job_config)
-        bytes_used = query_job.total_bytes_processed
-        human_bytes, queries_per_month = bytes_info(bytes_used)
-        return (human_bytes, queries_per_month)
-    
-    def execute(self, query: str) -> Tuple:
+        return get_bytes_info(query_job.total_bytes_processed)
+
+    def execute(self, query: str) -> tuple:
         """Execute the query, return the results"""
         bq_query = self.client.query(query)
         results = bq_query.result()
         field_names = [field.name for field in results.schema]
         rows = [row.values() for row in results]
         return field_names, rows
-    
+
     async def answer(self, question, statement, results) -> str:
         prompt_messages = [
             {"role": "system", "content": "You are a helpful assistant."},
