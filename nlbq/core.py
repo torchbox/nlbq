@@ -26,7 +26,7 @@ class NLBQ:
     def __init__(self, model: str = DEFAULT_MODEL) -> None:
         self.model = model
         self.prompt_template = self.get_prompt_template()
-        self.client = bigquery.Client()
+        self.client = bigquery.Client.from_service_account_json(settings.google_application_credentials)
 
     def get_prompt_template(self) -> str:
         """returns the prompt template as a string, with comments removed"""
