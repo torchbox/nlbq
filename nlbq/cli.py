@@ -37,10 +37,11 @@ async def ask(query: str, model: str = DEFAULT_MODEL) -> str:
     print(f"Converting your question to a BigQuery query, using {nlbq.model}..." "")
     statement = await nlbq.text_to_bq(query)
     print(f"\n{statement}\n")
-    data, qpm = nlbq.dry_run(statement)
+
+    data = nlbq.dry_run(statement)
     print(
-        f"This query will process {data}.",
-        f"You could run {qpm} queries like this per month.",
+        f"This query will process {data.human_bytes}.",
+        f"You could run {data.queries_per_month} queries like this per month.",
     )
     if input("Do you want to run it? (Y/n) ").lower() not in ["y", ""]:
         sys.exit(0)

@@ -14,12 +14,13 @@ async def dry_run(q: str):
     """Process a text query and return the SQL statement, results, and explanation."""
     nlbq = NLBQ()
     statement = await nlbq.text_to_bq(q)
-    data, qpm = nlbq.dry_run(statement)
+
+    bytes_info = nlbq.dry_run(statement)
     return {
         "response": {
             "statement": statement,
-            "data": data,
-            "qpm": qpm,
+            "data": bytes_info.human_bytes,
+            "qpm": bytes_info.queries_per_month,
         }
     }
 

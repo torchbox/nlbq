@@ -1,5 +1,6 @@
 import openai
 from google.cloud import bigquery
+from pydantic import BaseModel
 
 from nlbq.config import get_settings
 
@@ -8,7 +9,13 @@ DEFAULT_MODEL = "gpt-3.5-turbo"
 settings = get_settings()
 
 
-def bytes_info(bytes_used: int) -> tuple:
+class BytesInfo(BaseModel):
+    bytes_used: int
+    human_bytes: str
+    queries_per_month: int
+
+
+def get_bytes_info(bytes_used: int) -> BytesInfo:
     """Convert bytes into human readable figure, calculate queries per month"""
     if bytes_used < 1000000:
         human_bytes = f"{bytes_used/1000:.2f}KB"
@@ -16,7 +23,12 @@ def bytes_info(bytes_used: int) -> tuple:
         human_bytes = f"{bytes_used/1000000:.2f}MB"
     free_tier_bytes_per_month = 1024**4  # 1TB
     queries_per_month = free_tier_bytes_per_month // bytes_used
-    return (human_bytes, queries_per_month)
+
+    return BytesInfo(
+        bytes_used=bytes_used,
+        human_bytes=human_bytes,
+        queries_per_month=queries_per_month,
+    )
 
 
 class NLBQ:
@@ -49,13 +61,11 @@ class NLBQ:
         )
         return resp["choices"][0]["message"]["content"].strip()
 
-    def dry_run(self, query: str):
+    def dry_run(self, query: str) -> BytesInfo:
         """Report on the data this query would use"""
         job_config = bigquery.QueryJobConfig(dry_run=True, use_query_cache=False)
         query_job = self.client.query(query, job_config=job_config)
-        bytes_used = query_job.total_bytes_processed
-        human_bytes, queries_per_month = bytes_info(bytes_used)
-        return (human_bytes, queries_per_month)
+        return get_bytes_info(query_job.total_bytes_processed)
 
     def execute(self, query: str) -> tuple:
         """Execute the query, return the results"""
