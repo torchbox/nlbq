@@ -10,7 +10,7 @@ app = FastAPI()
 
 
 @app.get("/api/dry_run")
-async def dry_run(q: str | None = None):
+async def dry_run(q: str):
     """Process a text query and return the SQL statement, results, and explanation."""
     nlbq = NLBQ()
     statement = await nlbq.text_to_bq(q)
