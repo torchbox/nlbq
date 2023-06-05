@@ -14,49 +14,49 @@ UVICORN_PORT = 8000
 app = FastAPI()
 
 
-class DryRunResp(BaseModel):
+class DryRunResponse(BaseModel):
     statement: str
     data: str
     qpm: int
 
 
-class StatementReq(BaseModel):
+class StatementRequest(BaseModel):
     statement: str
     question: str
 
 
-class StatementResp(BaseModel):
+class StatementResponse(BaseModel):
     text_results: str
     html_results: str
 
 
-class AnswerReq(BaseModel):
+class AnswerRequest(BaseModel):
     question: str
     statement: str
     results: str
 
 
 @app.get("/api/dry_run")
-async def dry_run(q: str) -> DryRunResp:
+async def dry_run(q: str) -> DryRunResponse:
     """Process a text query and return the SQL statement, results, and explanation."""
     nlbq = NLBQ()
     statement = await nlbq.text_to_bq(q)
     data, qpm = nlbq.dry_run(statement)
-    return DryRunResp(statement=statement, data=data, qpm=qpm)
+    return DryRunResponse(statement=statement, data=data, qpm=qpm)
 
 
 @app.post("/api/run_statement")
-async def run_statement(request_data: StatementReq) -> StatementResp:
+async def run_statement(request_data: StatementRequest) -> StatementResponse:
     nlbq = NLBQ()
     fields, rows = nlbq.execute(request_data.statement)
-    return StatementResp(
+    return StatementResponse(
         text_results=tabulate(rows, headers=fields),
         html_results=tabulate(rows, headers=fields, tablefmt="html"),
     )
 
 
 @app.post("/api/answer")
-async def answer(request_data: AnswerReq):
+async def answer(request_data: AnswerRequest):
     nlbq = NLBQ()
     resp = await nlbq.answer(
         request_data.question, request_data.statement, request_data.results
