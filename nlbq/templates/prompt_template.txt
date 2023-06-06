@@ -1,0 +1,20 @@
+# Edit this file. You can leave comments like this one.
+I have a BigQuery dataset with one table. The project id is '{{ project_id }}', the dataset is '{{ dataset }}' and the table is '{{ table_id }}':
+
+# Describe the schema using the SchemaField class (https://cloud.google.com/python/docs/reference/bigquery/latest/google.cloud.bigquery.schema.SchemaField)
+{{ schema }}
+
+# Describe the table, then describe each column using terms that are likely to be used in questions
+It represents the <insert description here>. The columns are:
+
+{{ columns }}
+
+# Provide a sample of the data.
+The rows look like this:
+
+{{ sample_data }}
+
+# Don't change the following lines
+Write a BigQuery query which answers this question: %s
+
+Don't explain it, just return the query.

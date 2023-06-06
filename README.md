@@ -13,12 +13,19 @@ export GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/google-service-account.json
 
 ```bash
 mkdir demo # Git will ignore this directory
+cd demo
 python3 -m venv venv
 source venv/bin/activate
 pip install -e ../ # Install the local package in editable mode
-nlbq init
+nlbq init  # generates prompt.txt, Dockerfile and index.html
 # make changes then
 pip uninstall nlbq --yes; pip install -e ../
+```
+
+You can initialise with prepopulated BigQuery dataset table schema information with
+
+```bash
+nlbq init --table dataset.table_id
 ```
 
 ## Usage
