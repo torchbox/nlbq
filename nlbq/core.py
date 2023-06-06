@@ -1,7 +1,5 @@
-import sys
 import openai
 from google.cloud import bigquery
-from tabulate import tabulate
 from typing import Tuple
 
 DEFAULT_MODEL = "gpt-3.5-turbo"
@@ -60,6 +58,33 @@ class NLBQ:
         field_names = [field.name for field in results.schema]
         rows = [row.values() for row in results]
         return field_names, rows
+    
+    async def answer(self, question, statement, results) -> str:
+        prompt_messages = [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": self.prompt_template % question},
+            {"role": "assistant", "content": statement},
+            {
+                "role": "system",
+                "content": "The SQL statement returned the following results:\n\n"
+                + results,
+            },
+            {
+                "role": "system",
+                "content": f"Using these results, answer the question: {question}",
+            },
+            {
+                "role": "system",
+                "content": "Don't say what the query was, just answer the question.",
+            },
+        ]
+        resp = await openai.ChatCompletion.acreate(
+            model=self.model,
+            messages=prompt_messages,
+            temperature=0,
+        )
+        return resp["choices"][0]["message"]["content"].strip()
+
 
 
 
