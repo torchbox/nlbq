@@ -54,7 +54,7 @@ async def ask(query: str, model: str = DEFAULT_MODEL) -> str:
 
 
 def validate_table_format(table_in_dataset: str) -> str:
-    """Validate dataset format"""    
+    """Validate dataset format"""
     if table_in_dataset and "." not in table_in_dataset:
         raise typer.BadParameter(
             "The target table value must be in the format dataset.table_id"
