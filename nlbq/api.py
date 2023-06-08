@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from tabulate import tabulate
 
@@ -11,6 +11,17 @@ from nlbq.core import NLBQ
 settings = get_settings()
 
 app = FastAPI()
+
+# Allow all origins
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class DryRunRequest(BaseModel):
@@ -43,7 +54,7 @@ class AnswerRequest(BaseModel):
 
 @app.post("/api/dry_run")
 async def dry_run(request_data: DryRunRequest) -> DryRunResponse:
-    """Process a text query and return the SQL statement, results, and explanation."""
+    """Process a text query and return a SQL statement, results, and explanation."""
     nlbq = NLBQ(model=request_data.model)
     statement, cost = await nlbq.text_to_bq(request_data.question)
     bytes_info = nlbq.dry_run(statement)
@@ -57,6 +68,7 @@ async def dry_run(request_data: DryRunRequest) -> DryRunResponse:
 
 @app.post("/api/run_statement")
 async def run_statement(request_data: StatementRequest) -> StatementResponse:
+    """Execute a SQL statement and return the results in HTML and plain text formats."""
     nlbq = NLBQ()
     fields, rows = nlbq.execute(request_data.statement)
     return StatementResponse(
@@ -67,6 +79,7 @@ async def run_statement(request_data: StatementRequest) -> StatementResponse:
 
 @app.post("/api/answer")
 async def answer(request_data: AnswerRequest):
+    """Explain the results, using the supplied question and results."""
     nlbq = NLBQ()
     resp = await nlbq.answer(
         request_data.question, request_data.statement, request_data.results
@@ -78,9 +91,6 @@ async def answer(request_data: AnswerRequest):
 async def serve_index():
     """Serve index.html"""
     return FileResponse("index.html")
-
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 def serve():
