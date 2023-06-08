@@ -39,12 +39,13 @@ async def ask(query: str, model: str = DEFAULT_MODEL) -> str:
     """Convert question to BQ query, report on bytes used, offer to execute"""
     nlbq = NLBQ(model=model)
     print(f"Converting your question to a BigQuery query, using {nlbq.model}..." "")
-    statement = await nlbq.text_to_bq(query)
+    statement, cost = await nlbq.text_to_bq(query)
     print(f"\n{statement}\n")
     data = nlbq.dry_run(statement)
     print(
         f"This query will process {data.human_bytes}.",
         f"You could run {data.queries_per_month} queries like this per month.",
+        f"Building this query cost ${cost:.4f}.",
     )
     if input("Do you want to run it? (Y/n) ").lower() not in ["y", ""]:
         sys.exit(0)

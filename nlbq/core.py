@@ -39,7 +39,6 @@ def calculate_cost(prompt_tokens: int, completion_tokens: int, model: str) -> fl
     if model not in MODEL_COSTS:
         raise ValueError(f"Unknown model: {model}")
     costs = MODEL_COSTS[model]
-    print(f"prompt tokens: {prompt_tokens}, completion tokens: {completion_tokens}, model: {model}")
     return (prompt_tokens * costs["prompt"]) + (completion_tokens * costs["completion"])
 
 
