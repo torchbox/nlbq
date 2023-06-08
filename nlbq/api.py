@@ -22,6 +22,7 @@ class DryRunResponse(BaseModel):
     statement: str
     data: str
     qpm: int
+    gpt_cost: float
 
 
 class StatementRequest(BaseModel):
@@ -44,12 +45,13 @@ class AnswerRequest(BaseModel):
 async def dry_run(request_data: DryRunRequest) -> DryRunResponse:
     """Process a text query and return the SQL statement, results, and explanation."""
     nlbq = NLBQ(model=request_data.model)
-    statement = await nlbq.text_to_bq(request_data.question)
+    statement, cost = await nlbq.text_to_bq(request_data.question)
     bytes_info = nlbq.dry_run(statement)
     return DryRunResponse(
         statement=statement,
         data=bytes_info.human_bytes,
         qpm=bytes_info.queries_per_month,
+        gpt_cost=cost,
     )
 
 

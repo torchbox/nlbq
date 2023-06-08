@@ -30,6 +30,17 @@ def get_bytes_info(bytes_used: int) -> BytesInfo:
     )
 
 
+def calculate_cost(prompt_tokens: int, completion_tokens: int, model: str) -> float:
+    MODEL_COSTS = {
+        "gpt-3.5-turbo": {"prompt": 0.002 / 1000, "completion": 0.002 / 1000},
+        "gpt-4": {"prompt": 0.03 / 1000, "completion": 0.06 / 1000},
+    }
+    if model not in MODEL_COSTS:
+        raise ValueError(f"Unknown model: {model}")
+    costs = MODEL_COSTS[model]
+    return (prompt_tokens * costs["prompt"]) + (completion_tokens * costs["completion"])
+
+
 class NLBQ:
     """Natural language to BigQuery methods"""
 
@@ -46,7 +57,7 @@ class NLBQ:
         uncommented_lines = [line for line in lines if not line.strip().startswith("#")]
         return "\n".join(uncommented_lines).strip()
 
-    async def text_to_bq(self, question: str) -> str:
+    async def text_to_bq(self, question: str) -> tuple:
         """Use an LLM to convert a question into a BigQuery SQL query"""
         prompt_messages = [
             {"role": "system", "content": "You are a helpful assistant."},
@@ -58,7 +69,13 @@ class NLBQ:
             temperature=0,
             api_key=settings.openai_api_key,
         )
-        return resp["choices"][0]["message"]["content"].strip()
+
+        usage = resp["usage"]
+        statement = resp["choices"][0]["message"]["content"].strip()
+        cost = calculate_cost(
+            usage["prompt_tokens"], usage["completion_tokens"], self.model
+        )
+        return (statement, cost)
 
     def dry_run(self, query: str) -> BytesInfo:
         """Report on the data this query would use"""
