@@ -1,4 +1,3 @@
-from typing import Tuple
 import openai
 from google.cloud import bigquery
 from pydantic import BaseModel
@@ -58,7 +57,7 @@ class NLBQ:
         uncommented_lines = [line for line in lines if not line.strip().startswith("#")]
         return "\n".join(uncommented_lines).strip()
 
-    async def text_to_bq(self, question: str) -> Tuple:
+    async def text_to_bq(self, question: str) -> tuple:
         """Use an LLM to convert a question into a BigQuery SQL query"""
         prompt_messages = [
             {"role": "system", "content": "You are a helpful assistant."},
@@ -91,7 +90,6 @@ class NLBQ:
         field_names = [field.name for field in results.schema]
         rows = [row.values() for row in results]
         return field_names, rows
-
 
     async def answer(self, question, statement, results) -> str:
         prompt_messages = [
