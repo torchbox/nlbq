@@ -42,6 +42,6 @@ def generate_prompt_from_dataset_table(
     preview = json.dumps(
         [dict(row) for row in preview_rows], indent=2, cls=CustomJsonEncoder
     )
-    updated_content = updated_content.replace("{{ preview }}", preview)
+    updated_content = updated_content.replace("{{ sample_data }}", preview)
 
     prompt_file.write_text(updated_content)
