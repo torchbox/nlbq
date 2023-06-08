@@ -1,3 +1,4 @@
+from typing import Tuple
 import openai
 from google.cloud import bigquery
 from pydantic import BaseModel
