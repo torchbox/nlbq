@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>NLBQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="/static/tachyons.min.css" />
+    <script src="/static/vue.js"></script>
+    <style>
+        th {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        table {
+            border-spacing: 0 0.1em;
+        }
+
+        td {
+            padding-top: 0px;
+        }
+
+        .light-green {
+            color: aquamarine;
+        }
+    </style>
+</head>
+
+<body class="w-100 avenir black-80 bg-pink">
+    <div id="app" class="mw7 center pa2 black-80">
+        <div>
+            <h1 class="f-subheadline-ns f1 lh-solid mb4 near-black">
+                <span class="light-green">nl</span>bq
+            </h1>
+            <form @submit="getStatement">
+                <label for="question" class="f4 db mb3">Ask BigQuery a question</label>
+                <input id="question" class="input-reset f4 ba b--black-20 pa2 mb1 db w-100 br2" type="text"
+                    v-model.lazy="question" />
+                <input id="submit" class="dim mt3 pointer ph2 pv1 input-reset ba b--black br2 bg-light-green f4 mb1"
+                    type="submit" :value="button_text" />
+            </form>
+
+            <div class="mt1 mb2" v-if="statement.length">
+                <div class="mv3 f5 bg-light-pink pt2 ph2 pb1 br2 lh-copy" 
+                    contenteditable="false" 
+                    v-html="formatted_statement"></div>
+                <div class="f4 mt3 lh-copy">
+                    This query will use <span class="bg-light-pink">{{data}}</span> from the 1TB monthly allowance.
+                    You can run <span class="bg-light-pink">{{qpm}}</span> queries like this each month.
+                    <span v-if="execute_link_text.length">
+                        <input id="submit"
+                            class="dim mt1 pointer ph2 pv1 input-reset ba b--black br2 bg-light-green f4 mb1"
+                            type="submit" @click="run_statement()" :value=execute_link_text />
+                    </span>
+                    <span v-else>
+                        <input id="submit"
+                            class="dim mt1 pointer ph2 pv1 input-reset ba b--black br2 bg-light-green f4 mb1"
+                            value="Running the query" />
+                    </span>
+                </div>
+            </div>
+
+            <div id="context" 
+                v-if="html_results.length" 
+                class="mv3 f5 bg-lightest-blue pt2 ph2 pb1 br2 lh-copy"
+                v-html="html_results">
+            </div>
+
+            <div v-if="answer.length" v-html="answer" 
+                class="mv3 f5 bg-light-green pt2 ph2 pb1 br2 lh-copy"></div>
+
+        </div>
+    </div>
+
+    <script>
+        // typing indicator
+        let dotCount = 0;
+
+        function updateTypingIndicator() {
+            dotCount = (dotCount + 1) % 4;
+            app.typing_indicator = '.'.repeat(dotCount);
+        }
+
+        var app = new Vue({
+            el: "#app",
+            data: {
+                button_text: "Tell me",
+                question: "",
+                statement: "",
+                formatted_statement: "",
+                data: "",
+                text_results: "",
+                html_results: "",
+                answer: "",
+                execute_link_text: "OK, run it",
+                qpm: 0,
+                display: false,
+                typing_indicator: "",
+            },
+            methods: {
+                getStatement(e) {
+                    e.preventDefault();
+                    app.button_text = "Working it out...";
+                    app.statement = "";
+                    app.answer = "";
+                    app.html_results = "",
+                        fetch(`/api/dry_run?q=${app.question}`)
+                            .then(async function (response) {
+                                let resp = await response.json();
+                                console.log(resp);
+                                app.statement = resp["statement"];
+                                app.formatted_statement = resp["statement"].replace(/\n/g, "<br />");
+                                app.data = resp["data"];
+                                app.qpm = resp["qpm"];
+                                app.button_text = "Tell me";
+                            })
+                            .catch(function (error) {
+                                console.log(error);
+                            });
+                },
+                run_statement() {
+                    console.log('running statement');
+                    app.execute_link_text = "",
+                        app.html_results = "",
+                        typingAnimation = setInterval(updateTypingIndicator, 500);
+                    const requestData = {
+                        question: app.question,
+                        statement: app.statement,
+                    };
+                    fetch('/api/run_statement', {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", },
+                        body: JSON.stringify(requestData),
+                    })
+                        .then(async function (response) {
+                            let resp = await response.json();
+                            app.text_results = resp.text_results;
+                            app.html_results = resp.html_results;
+                            clearInterval(typingAnimation);
+                            app.execute_link_text = "OK, run it";
+                            app.answer = 'working out answer...'
+                            const requestData = {
+                                question: app.question,
+                                statement: app.statement,
+                                results: app.text_results
+                            };
+                            fetch('/api/answer', {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", },
+                                body: JSON.stringify(requestData),
+                            })
+                                .then(async function (response) {
+                                    let resp = await response.json();
+                                    app.answer = resp.answer.replace(/\n/g, "<br />");
+                                })
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                },
+                toggleText() {
+                    this.display = !this.display;
+                },
+            },
+        });
+    </script>
+</body>
+
+</html>

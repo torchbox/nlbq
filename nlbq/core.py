@@ -114,5 +114,6 @@ class NLBQ:
             model=self.model,
             messages=prompt_messages,
             temperature=0,
+            api_key=settings.openai_api_key,
         )
         return resp["choices"][0]["message"]["content"].strip()
